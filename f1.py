@@ -1,37 +1,68 @@
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import random
+import numpy as np 
+import pandas as pd
+from matplotlib.animation import FuncAnimation
 
-# Create figure for plotting
-fig, ax = plt.subplots()
-x_data, y_data = [], []
-line, = ax.plot(x_data, y_data)
+# Parameters
+num_points = 100
+interval = 1000  # milliseconds
 
-# Set up plot limits
-ax.set_xlim(0, 100)  # x-axis will show the last 100 points
-ax.set_ylim(0, 100)  # y-axis range for random values
+# Initialize lists for data
+time = []
+temperature = []
+tire_pressure = []
+overtaking_events = []
+speed = []
 
-# Function to update the graph
+# Create a figure and axes
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6))
+
+def generate_data():
+    # Simulate data
+    temp = np.random.uniform(30, 40)
+    pressure = np.random.uniform(1.8, 2.5)
+    overtake = np.random.randint(0, 2)
+    spd = np.random.uniform(150, 250)
+    return temp, pressure, overtake, spd
+
 def update(frame):
-    # Add new data point (incremental x and random y)
-    x_data.append(len(x_data))  # x-axis increments by 1 each frame
-    y_data.append(random.randint(0, 100))  # random y-axis value between 0 and 100
-
-    # Keep only the last 100 points in the graph
-    if len(x_data) > 100:
-        x_data.pop(0)
-        y_data.pop(0)
+    # Update data
+    temp, pressure, overtake, spd = generate_data()
+    time.append(frame)
+    temperature.append(temp)
+    tire_pressure.append(pressure)
+    overtaking_events.append(overtake)
+    speed.append(spd)
     
-    # Update the line data
-    line.set_data(x_data, y_data)
+    # Limit the length of data lists
+    if len(time) > num_points:
+        time.pop(0)
+        temperature.pop(0)
+        tire_pressure.pop(0)
+        overtaking_events.pop(0)
+        speed.pop(0)
     
-    return line,
+    # Clear and update the plots
+    ax1.clear()
+    ax2.clear()
+    
+    # Plot Temperature and Tire Pressure
+    ax1.plot(time, temperature, label='Temperature (°C)', color='red')
+    ax1.plot(time, tire_pressure, label='Tire Pressure (bar)', color='blue')
+    ax1.set_xlabel('Time')
+    ax1.set_ylabel('Temperature / Pressure')
+    ax1.legend(loc='upper left')
+    
+    # Plot Speed and Overtaking Events
+    ax2.plot(time, speed, label='Speed (km/h)', color='green')
+    ax2.plot(time, np.array(overtaking_events)*max(speed), label='Overtaking Events', color='purple', linestyle='--')
+    ax2.set_xlabel('Time')
+    ax2.set_ylabel('Speed / Overtaking')
+    ax2.legend(loc='upper left')
 
-# Animate the plot, updating every 100ms (10 frames per second)
-ani = animation.FuncAnimation(fig, update, interval=100)
+# Animation
+ani = FuncAnimation(fig, update, interval=interval)
 
 # Show the plot
-plt.title('Real-Time Data Simulation')
-plt.xlabel('Time (frames)')
-plt.ylabel('Random Value')
+plt.tight_layout()
 plt.show()
